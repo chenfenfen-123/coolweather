@@ -1,10 +1,15 @@
 package com.example.coolweather.util
 
 import android.util.Log
-import okhttp3.Interceptor
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.Response
+import com.example.coolweather.ApiService
+import com.example.coolweather.gson.Weather
+import okhttp3.*
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory
+import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 class HttpUtil {
@@ -23,7 +28,17 @@ class HttpUtil {
                 .method("GET", null)
                 .build()
             okHttpClient.newCall(request).enqueue(callback)
+
+            }
+        fun requestWeather(weatherId: String?, key: String,callback: Callback<ResponseBody>) {
+            val retrofit = Retrofit
+                .Builder()
+                .baseUrl("http://guolin.tech/api/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
+                .build()
+            val apiService = retrofit.create(ApiService::class.java)
+            apiService.getWeatherInfo(weatherId, key).enqueue(callback)
+        }
         }
     }
-
-}

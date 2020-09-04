@@ -1,6 +1,7 @@
 package com.example.coolweather
 
 import android.app.ProgressDialog
+import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -81,6 +82,14 @@ class ChooseAreaFragment : Fragment() {
                     selectedCity = cityList[positon]
                     queryCounties()
                 }
+                LEVEL_COUNTY -> {
+                    val weatherId = countyList[positon].weatherId
+                    val intent = Intent(activity,WeatherActivity::class.java).apply {
+                        putExtra("weather_id",weatherId)
+                    }
+                    startActivity(intent)
+                    activity?.finish()
+                }
             }
         }
         backButton.setOnClickListener {
@@ -159,6 +168,7 @@ class ChooseAreaFragment : Fragment() {
             }
             override fun onResponse(call: Call, response: Response) {
                 val data = response.body?.string() ?: ""
+                Log.d(TAG,data.toString())
                 var result = false
                 when(type) {
                     PROVINCE -> {

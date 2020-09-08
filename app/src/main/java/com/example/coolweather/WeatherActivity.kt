@@ -14,6 +14,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.widget.*
 import androidx.core.content.edit
+import androidx.core.view.GravityCompat
+import androidx.drawerlayout.widget.DrawerLayout
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.bumptech.glide.Glide
 import com.bumptech.glide.util.Util
@@ -44,8 +46,10 @@ class WeatherActivity : AppCompatActivity() {
     private lateinit var forecastLayout: LinearLayout
     private lateinit var sportText: TextView
     private lateinit var backgroundImg: ImageView
-    private lateinit var swipeRefresh: SwipeRefreshLayout
+    public lateinit var swipeRefresh: SwipeRefreshLayout
     private lateinit var mWeatherId: String
+    lateinit var drawerLayout:DrawerLayout
+    private lateinit var navButton: Button
     private val retrofit = Retrofit
         .Builder()
         .baseUrl("http://guolin.tech/api/")
@@ -57,6 +61,11 @@ class WeatherActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_weather)
+        drawerLayout = findViewById(R.id.drawer_layout)
+        navButton = findViewById(R.id.nav_button)
+        navButton.setOnClickListener {
+            drawerLayout.openDrawer(GravityCompat.START)
+        }
         swipeRefresh = findViewById(R.id.refresh)
         swipeRefresh.setColorSchemeColors(resources.getColor(R.color.colorPrimary))
         weatherLayout = findViewById(R.id.weather_layout)
@@ -152,7 +161,7 @@ class WeatherActivity : AppCompatActivity() {
         weatherLayout.visibility = View.VISIBLE
     }
 
-    private fun requestWeather(weatherId: String?) {
+    public fun requestWeather(weatherId: String?) {
         val key = "bc0418b57b2d4918819d3974ac1285d9"
         apiService.getWeatherInfo(weatherId, key).enqueue(object : Callback<ResponseBody> {
             override fun onFailure(call: retrofit2.Call<ResponseBody>, t: Throwable) {

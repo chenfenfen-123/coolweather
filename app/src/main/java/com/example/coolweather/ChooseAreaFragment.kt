@@ -17,6 +17,7 @@ import com.example.coolweather.db.County
 import com.example.coolweather.db.Province
 import com.example.coolweather.util.HttpUtil
 import com.example.coolweather.util.Utility
+import kotlinx.android.synthetic.main.activity_weather.*
 import okhttp3.Call
 import okhttp3.Response
 import org.litepal.LitePal
@@ -84,11 +85,21 @@ class ChooseAreaFragment : Fragment() {
                 }
                 LEVEL_COUNTY -> {
                     val weatherId = countyList[positon].weatherId
-                    val intent = Intent(activity,WeatherActivity::class.java).apply {
-                        putExtra("weather_id",weatherId)
+                    val mActivity = activity
+                    if (mActivity is MainActivity) {
+                        val intent = Intent(activity, WeatherActivity::class.java).apply {
+                            putExtra("weather_id", weatherId)
+                        }
+                        startActivity(intent)
+                        activity?.finish()
                     }
-                    startActivity(intent)
-                    activity?.finish()
+                    else if (mActivity is WeatherActivity) {
+                        mActivity.apply {
+                            drawerLayout.closeDrawers()
+                            swipeRefresh.isRefreshing = true
+                            requestWeather(weatherId)
+                        }
+                    }
                 }
             }
         }

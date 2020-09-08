@@ -11,4 +11,6 @@ interface ApiService {
     @GET("weather?")
     fun getWeatherInfo(@Query("cityid")weatherId: String?, @Query("key")key: String): Call<ResponseBody>
 
+    @GET("bing_pic")
+    fun loadImg(): Call<ResponseBody>
 }

@@ -12,11 +12,9 @@ import android.text.TextUtils
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
-import android.widget.LinearLayout
-import android.widget.ScrollView
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.core.content.edit
+import com.bumptech.glide.Glide
 import com.bumptech.glide.util.Util
 import com.example.coolweather.gson.Weather
 import com.example.coolweather.util.HttpUtil
@@ -26,6 +24,9 @@ import okhttp3.Call
 import okhttp3.Response
 import okhttp3.ResponseBody
 import retrofit2.Callback
+import retrofit2.Retrofit
+import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory
+import retrofit2.converter.gson.GsonConverterFactory
 import java.io.IOException
 
 class WeatherActivity : AppCompatActivity() {
@@ -41,6 +42,15 @@ class WeatherActivity : AppCompatActivity() {
     private lateinit var titleUpdateTime: TextView
     private lateinit var forecastLayout: LinearLayout
     private lateinit var sportText: TextView
+    private lateinit var backgroundImg: ImageView
+
+    private val retrofit = Retrofit
+        .Builder()
+        .baseUrl("http://guolin.tech/api/")
+        .addConverterFactory(GsonConverterFactory.create())
+        .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
+        .build()
+    private val apiService = retrofit.create(ApiService::class.java)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,13 +66,46 @@ class WeatherActivity : AppCompatActivity() {
         comfortText = findViewById(R.id.comfort_text)
         carWashText = findViewById(R.id.car_wash_text)
         sportText = findViewById(R.id.sport_text)
+        backgroundImg = findViewById(R.id.bing_pic_img)
+        val bingPic = getData(PICTURE_DATA)
+        if (!TextUtils.isEmpty(bingPic)){
+            Glide.with(this).load(bingPic).into(backgroundImg)
+        }
+        else{
+            loadImage()
+        }
+
         if (!TextUtils.isEmpty(getData("DATA"))){
-            showWeatherInfo(Utility.handleWeatherResponse(getData(DATA)))
+            showWeatherInfo(Utility.handleWeatherResponse(getData(WEATHER_DATA)))
         }
         else {
             weatherLayout.visibility = View.INVISIBLE
             requestWeather(intent.getStringExtra("weather_id"))
         }
+    }
+
+    private fun loadImage() {
+        apiService.loadImg().enqueue(object : Callback<ResponseBody> {
+            override fun onFailure(call: retrofit2.Call<ResponseBody>, t: Throwable) {
+                t.printStackTrace()
+            }
+
+            override fun onResponse(
+                call: retrofit2.Call<ResponseBody>,
+                response: retrofit2.Response<ResponseBody>
+            ) {
+                val image = response.body()?.string()
+                getPreferences(Context.MODE_PRIVATE)?.apply {
+                    edit(true) {
+                    putString(PICTURE_DATA,image)
+                }
+                }
+                mHandler.post {
+                    Glide.with(this@WeatherActivity).load(image).into(backgroundImg)
+                }
+            }
+
+        })
     }
 
     /*
@@ -101,10 +144,10 @@ class WeatherActivity : AppCompatActivity() {
 
     private fun requestWeather(weatherId: String?) {
         val key = "bc0418b57b2d4918819d3974ac1285d9"
-        HttpUtil.requestWeather(weatherId, key, object : Callback<ResponseBody> {
+        apiService.getWeatherInfo(weatherId, key).enqueue(object : Callback<ResponseBody> {
             override fun onFailure(call: retrofit2.Call<ResponseBody>, t: Throwable) {
                 mHandler.post {
-                    Utility.handleWeatherResponse(getData(DATA))
+                    Utility.handleWeatherResponse(getData(WEATHER_DATA))
                     Toast.makeText(this@WeatherActivity,"获取天气信息失败",Toast.LENGTH_SHORT).show()
                 }
             }
@@ -123,38 +166,14 @@ class WeatherActivity : AppCompatActivity() {
                     }
                 }
             }
-
         })
-//        val url = "http://guolin.tech/api/weather?cityid=$weatherId&key=bc0418b57b2d4918819d3974ac1285d9"
-//        HttpUtil.sendOkHttpRequest(url, object : okhttp3.Callback {
-//            override fun onFailure(call: Call, e: IOException) {
-//                mHandler.post {
-//                    Utility.handleWeatherResponse(getData(DATA))
-//                    Toast.makeText(this@WeatherActivity,"获取天气信息失败",Toast.LENGTH_SHORT).show()
-//                }
-//            }
-//
-//            override fun onResponse(call: Call, response: Response) {
-//                val data = response.body?.string() ?: ""
-//                val weather = Utility.handleWeatherResponse(data)
-//                mHandler.post {
-//                    if (response.isSuccessful) {
-//                        saveData(data)
-//                        showWeatherInfo(weather)
-//                    }
-//                    else {
-//                        Toast.makeText(this@WeatherActivity,"获取天气信息失败",Toast.LENGTH_SHORT).show()
-//                    }
-//                }
-//            }
-//
-//        })
+        loadImage()
     }
 
     private fun saveData(jsonString: String) {
         getPreferences(Context.MODE_PRIVATE)?.apply {
             edit(true) {
-                putString(DATA, jsonString)
+                putString(WEATHER_DATA, jsonString)
             }
         }
     }
@@ -164,6 +183,7 @@ class WeatherActivity : AppCompatActivity() {
     }
 
     companion object {
-        private const val DATA = "weatherInfo"
+        private const val WEATHER_DATA = "weatherInfo"
+        private const val PICTURE_DATA = "bing_pic"
     }
 }

@@ -8,4 +8,5 @@
     <string name="aqi">AQI指数</string>
     <string name="pm2_5">PM2.5指数</string>
     <string name="suggestion">生活建议</string>
+    <string name="todo">TODO</string>
 </resources>

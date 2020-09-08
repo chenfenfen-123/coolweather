@@ -14,6 +14,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.widget.*
 import androidx.core.content.edit
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.bumptech.glide.Glide
 import com.bumptech.glide.util.Util
 import com.example.coolweather.gson.Weather
@@ -43,7 +44,8 @@ class WeatherActivity : AppCompatActivity() {
     private lateinit var forecastLayout: LinearLayout
     private lateinit var sportText: TextView
     private lateinit var backgroundImg: ImageView
-
+    private lateinit var swipeRefresh: SwipeRefreshLayout
+    private lateinit var mWeatherId: String
     private val retrofit = Retrofit
         .Builder()
         .baseUrl("http://guolin.tech/api/")
@@ -55,6 +57,8 @@ class WeatherActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_weather)
+        swipeRefresh = findViewById(R.id.refresh)
+        swipeRefresh.setColorSchemeColors(resources.getColor(R.color.colorPrimary))
         weatherLayout = findViewById(R.id.weather_layout)
         titleCity = findViewById(R.id.title_city)
         titleUpdateTime = findViewById(R.id.title_update_time)
@@ -76,11 +80,17 @@ class WeatherActivity : AppCompatActivity() {
         }
 
         if (!TextUtils.isEmpty(getData("DATA"))){
-            showWeatherInfo(Utility.handleWeatherResponse(getData(WEATHER_DATA)))
+            val weather = Utility.handleWeatherResponse(getData(WEATHER_DATA))
+            mWeatherId = weather?.basic?.weatherId ?: ""
+            showWeatherInfo(weather)
         }
         else {
+            mWeatherId = intent.getStringExtra("weather_id")!!
             weatherLayout.visibility = View.INVISIBLE
-            requestWeather(intent.getStringExtra("weather_id"))
+            requestWeather(mWeatherId)
+        }
+        swipeRefresh.setOnRefreshListener {
+            requestWeather(mWeatherId)
         }
     }
 
@@ -149,6 +159,7 @@ class WeatherActivity : AppCompatActivity() {
                 mHandler.post {
                     Utility.handleWeatherResponse(getData(WEATHER_DATA))
                     Toast.makeText(this@WeatherActivity,"获取天气信息失败",Toast.LENGTH_SHORT).show()
+                    swipeRefresh.isRefreshing = false
                 }
             }
             override fun onResponse(
@@ -157,6 +168,7 @@ class WeatherActivity : AppCompatActivity() {
             ) {
                 val data = response.body()?.string()?: ""
                 val weather = Utility.handleWeatherResponse(data)
+                mWeatherId = weather?.basic?.weatherId ?: ""
                 mHandler.post {
                     if (response.isSuccessful) {
                         saveData(data)
@@ -165,6 +177,7 @@ class WeatherActivity : AppCompatActivity() {
                         Toast.makeText(this@WeatherActivity, "获取天气信息失败", Toast.LENGTH_SHORT).show()
                     }
                 }
+                swipeRefresh.isRefreshing = false
             }
         })
         loadImage()

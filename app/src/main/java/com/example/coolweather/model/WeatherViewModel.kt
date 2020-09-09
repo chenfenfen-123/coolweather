@@ -1,6 +1,7 @@
 package com.example.coolweather.model
 
 
+import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.coolweather.ApiService
@@ -20,5 +21,7 @@ class WeatherViewModel : ViewModel() {
         .build()
     private val apiService = retrofit.create(ApiService::class.java)
 
+    init {
 
+    }
 }

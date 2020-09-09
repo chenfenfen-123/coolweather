@@ -2,6 +2,7 @@ package com.example.coolweather
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
@@ -20,6 +21,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.bumptech.glide.Glide
 import com.bumptech.glide.util.Util
 import com.example.coolweather.gson.Weather
+import com.example.coolweather.service.AutoUpdateService
 import com.example.coolweather.util.HttpUtil
 import com.example.coolweather.util.Utility
 import kotlinx.android.synthetic.main.forecast_item.*
@@ -159,6 +161,7 @@ class WeatherActivity : AppCompatActivity() {
         carWashText.text = "洗车指数"+ weather.suggestion?.carWash?.info
         sportText.text = "运动建议"+ weather.suggestion?.sport?.info
         weatherLayout.visibility = View.VISIBLE
+        startService(Intent(this,AutoUpdateService::class.java))
     }
 
     public fun requestWeather(weatherId: String?) {

@@ -23,5 +23,8 @@ class WeatherViewModel : ViewModel() {
 
     init {
 
+
+
+
     }
 }

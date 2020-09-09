@@ -28,17 +28,6 @@ class HttpUtil {
                 .method("GET", null)
                 .build()
             okHttpClient.newCall(request).enqueue(callback)
-
             }
-        fun requestWeather(weatherId: String?, key: String,callback: Callback<ResponseBody>) {
-            val retrofit = Retrofit
-                .Builder()
-                .baseUrl("http://guolin.tech/api/")
-                .addConverterFactory(GsonConverterFactory.create())
-                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
-                .build()
-            val apiService = retrofit.create(ApiService::class.java)
-            apiService.getWeatherInfo(weatherId, key).enqueue(callback)
-        }
         }
     }
